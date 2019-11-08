@@ -1,3 +1,4 @@
+#include <math.h>
 #include "kalman_filter.h"
 
 using Eigen::MatrixXd;
@@ -22,20 +23,64 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   Q_ = Q_in;
 }
 
+// have to make sure that all attributes x_, P_, F_, ... are set
 void KalmanFilter::Predict() {
   /**
    * TODO: predict the state
    */
+  x_ = F_ * x_;  // assuming u is always VectorXd(0,0);
+  P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
   /**
    * TODO: update the state by using Kalman Filter equations
    */
+  VectorXd y = z - H_ * x_;
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd K = P_ * Ht * S.inverse();
+  
+  x_ = x_ + (K*y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K*H_) * P_;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   /**
    * TODO: update the state by using Extended Kalman Filter equations
    */
+  float px = x_(0);
+  float py = x_(1);
+  float vx = x_(2);
+  float vy = x_(3);
+
+  float rho = sqrt(pow(px, 2.0) + pow(py, 2.0));
+  float phi = atan2(py, px);
+
+  if(phi < -M_PI){
+    phi += 2.0 * M_PI;
+  }
+
+  else if(phi > M_PI){
+    phi -= 2.0 * M_PI;
+  }
+
+  // Check if if-else statement is needed to avoid dividing by rho if it's too close to 0
+  float rho_dot = (px*vy + py*vx) / rho;
+  VectorXd hx(3);
+  hx << rho, phi, rho_dot;
+
+  VectorXd y = z - hx;
+  // for Hj either import tools library and calculate it here, or set the H_ attribute to Hj in the FusionEKF.cpp
+  // everything else is exactly the same as in the Update() function; think about outsourcing it to an additional function
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd K = P_ * Ht * S.inverse();
+  
+  x_ = x_ + (K*y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K*H_) * P_; 
 }
