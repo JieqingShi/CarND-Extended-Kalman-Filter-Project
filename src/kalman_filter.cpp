@@ -59,26 +59,25 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float rho = sqrt(pow(px, 2.0) + pow(py, 2.0));
   float phi = atan2(py, px);
   
+  /*
   if (rho < .00001) {
     px += .001;
     py += .001;
     rho = sqrt(px*px + py*py);
   }
-
-  if(phi < -M_PI){
-    phi += 2.0 * M_PI;
-  }
-
-  else if(phi > M_PI){
-    phi -= 2.0 * M_PI;
-  }
-
-  // Todo: Check if if-else statement is needed to avoid dividing by rho if it's too close to 0
-  float rho_dot = (px*vy + py*vx) / rho;
+  */
+  float rho_dot = (px*vx + py*vy) / rho;
   VectorXd hx(3);
   hx << rho, phi, rho_dot;
 
   VectorXd y = z - hx;
+  while ( y(1) > M_PI || y(1) < -M_PI ) {
+    if ( y(1) > M_PI ) {
+      y(1) -= 2*M_PI;
+    } else {
+      y(1) += 2*M_PI;
+    }
+  }
   // for Hj either import tools library and calculate it here, or set the H_ attribute to Hj in the FusionEKF.cpp
   // everything else is exactly the same as in the Update() function; think about outsourcing it to an additional function
   MatrixXd Ht = H_.transpose();
