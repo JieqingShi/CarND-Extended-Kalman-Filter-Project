@@ -42,19 +42,32 @@ FusionEKF::FusionEKF() {
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0; 
   //measurement matrix - radar (Hj_) - does it really need to be initialized?
+  /*
   Hj_ << 1, 1, 0, 0,
          1, 1, 0, 0,
          1, 1, 1, 1;
+  */
 
   // Todo: Check if it needs to be set; for now I'm keeping it similar to the lecture notes with regards 
   // to which variables are initialized
 
   // state covariance matrix (see header)
   ekf_.P_ = MatrixXd(4, 4);
+  
   ekf_.P_ << 1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1000, 0,
             0, 0, 0, 1000;
+  
+  /*
+  ekf_.P_ << 1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1;
+  */
+            
+            
+            
 
   // transition matrix
   ekf_.F_ = MatrixXd(4, 4);
@@ -62,6 +75,7 @@ FusionEKF::FusionEKF() {
             0, 1, 0, 1,
             0, 0, 1, 0,
             0, 0, 0, 1;
+  
 
 }
 
@@ -99,8 +113,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // Todo: have to try different initialization methods, maybe for vx, vy?
       ekf_.x_ << rho * cos(phi), 
                  rho * sin(phi),
-                 0,
-                 0;
+                 rho_dot*cos(phi),
+                 rho_dot*sin(phi);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       // TODO: Initialize state.
@@ -141,7 +155,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   ekf_.Q_ = MatrixXd(4, 4);
   ekf_.Q_ << pow(dt, 4.0)/4.0 * noise_ax, 0, pow(dt, 3.0)/2.0 * noise_ax, 0,
-            0, pow(dt, 4.0)/4.0 * noise_ay, 0, pow(dt, 3.0)/2.0 * noise_ax,
+            0, pow(dt, 4.0)/4.0 * noise_ay, 0, pow(dt, 3.0)/2.0 * noise_ay,
             pow(dt, 3.0)/2.0 * noise_ax, 0, pow(dt, 2.0) * noise_ax, 0,
             0, pow(dt, 3.0)/2.0 * noise_ay, 0, pow(dt, 2.0) * noise_ay;
 
@@ -161,7 +175,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
     // set attributes of ekf_ for RADAR
-    Tools tools;  // initialize using constructor
+    //Tools tools;  // initialize using constructor
     Hj_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.R_ = R_radar_;
     ekf_.H_ = Hj_;

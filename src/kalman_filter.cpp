@@ -58,6 +58,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
   float rho = sqrt(pow(px, 2.0) + pow(py, 2.0));
   float phi = atan2(py, px);
+  
+  if (rho < .00001) {
+    px += .001;
+    py += .001;
+    rho = sqrt(px*px + py*py);
+  }
 
   if(phi < -M_PI){
     phi += 2.0 * M_PI;
@@ -67,7 +73,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     phi -= 2.0 * M_PI;
   }
 
-  // Check if if-else statement is needed to avoid dividing by rho if it's too close to 0
+  // Todo: Check if if-else statement is needed to avoid dividing by rho if it's too close to 0
   float rho_dot = (px*vy + py*vx) / rho;
   VectorXd hx(3);
   hx << rho, phi, rho_dot;
