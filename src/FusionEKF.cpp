@@ -41,17 +41,8 @@ FusionEKF::FusionEKF() {
   //measurement matrix - laser (H_laser)
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0; 
-  //measurement matrix - radar (Hj_) - does it really need to be initialized?
-  /*
-  Hj_ << 1, 1, 0, 0,
-         1, 1, 0, 0,
-         1, 1, 1, 1;
-  */
 
-  // Todo: Check if it needs to be set; for now I'm keeping it similar to the lecture notes with regards 
-  // to which variables are initialized
-
-  // state covariance matrix (see header)
+  // state covariance matrix
   ekf_.P_ = MatrixXd(4, 4);
   
   ekf_.P_ << 1, 0, 0, 0,
@@ -65,8 +56,6 @@ FusionEKF::FusionEKF() {
             0, 1, 0, 1,
             0, 0, 1, 0,
             0, 0, 0, 1;
-  
-
 }
 
 /**
@@ -100,7 +89,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float phi = measurement_pack.raw_measurements_(1);
       float rho_dot = measurement_pack.raw_measurements_(2);
 
-      // Todo: have to try different initialization methods, maybe for vx, vy?
       ekf_.x_ << rho * cos(phi), 
                  rho * sin(phi),
                  rho_dot*cos(phi),
@@ -108,7 +96,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       // TODO: Initialize state.
-      // Todo: Using the initialization from the lecture, could also try different ones for vx, vy
+      // No knowledge about the speed, thus setting them to 0;
       ekf_.x_ << measurement_pack.raw_measurements_[0], 
               measurement_pack.raw_measurements_[1], 
               0, 
@@ -165,7 +153,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
     // set attributes of ekf_ for RADAR
-    //Tools tools;  // initialize using constructor
     Hj_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.R_ = R_radar_;
     ekf_.H_ = Hj_;

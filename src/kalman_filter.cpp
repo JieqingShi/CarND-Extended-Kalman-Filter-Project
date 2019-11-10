@@ -37,14 +37,7 @@ void KalmanFilter::Update(const VectorXd &z) {
    * TODO: update the state by using Kalman Filter equations
    */
   VectorXd y = z - H_ * x_;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd K = P_ * Ht * S.inverse();
-  
-  x_ = x_ + (K*y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K*H_) * P_;
+  UpdateMatrices(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -59,27 +52,29 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float rho = sqrt(pow(px, 2.0) + pow(py, 2.0));
   float phi = atan2(py, px);
   
-  /*
-  if (rho < .00001) {
-    px += .001;
-    py += .001;
-    rho = sqrt(px*px + py*py);
-  }
-  */
   float rho_dot = (px*vx + py*vy) / rho;
   VectorXd hx(3);
   hx << rho, phi, rho_dot;
 
   VectorXd y = z - hx;
-  while ( y(1) > M_PI || y(1) < -M_PI ) {
-    if ( y(1) > M_PI ) {
+
+  // making sure that the resulting angle phi in y is between -M_PI and M_PI
+  while (y(1) > M_PI) {
       y(1) -= 2*M_PI;
-    } else {
-      y(1) += 2*M_PI;
-    }
   }
-  // for Hj either import tools library and calculate it here, or set the H_ attribute to Hj in the FusionEKF.cpp
-  // everything else is exactly the same as in the Update() function; think about outsourcing it to an additional function
+  while (y(1) < -M_PI) {
+      y(1) += 2*M_PI;
+  }
+  
+  UpdateMatrices(y);
+}
+
+void KalmanFilter::UpdateMatrices(const VectorXd &y) {
+  /**
+   * Update of matrices in the Update() and UpdateEKF() functions;
+   * Outsourced the code into this function to reduce amount of Copy and Paste
+   */
+
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd K = P_ * Ht * S.inverse();

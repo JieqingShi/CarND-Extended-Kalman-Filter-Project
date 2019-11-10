@@ -32,6 +32,7 @@ class KalmanFilter {
    * using the process model
    * @param delta_T Time between k and k+1 in s
    */
+  void UpdateMatrices(const Eigen::VectorXd &y);
   void Predict();
 
   /**

@@ -1,5 +1,23 @@
 # Extended Kalman Filter Project Starter Code
-Self-Driving Car Engineer Nanodegree Program
+
+[//]: # (Image References)
+
+[ds1]: ./img/Dataset1.png "Dataset1"
+[ds2]: ./img/Dataset2.png "Dataset2"
+
+## Final Results
+
+_Dataset1_
+![ds1][ds1]
+
+`RMSE: [0.0974, 0.0855, 0.4517, 0.4404]`
+
+_Dataset2_
+![ds2][ds2]
+
+`RMSE: [0.0726, 0.0965, 0.4219, 0.4973]`
+
+## Self-Driving Car Engineer Nanodegree Program
 
 In this project you will utilize a kalman filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower than the tolerance outlined in the project rubric. 
 
@@ -129,6 +147,4 @@ and how to install it.
 Regardless of the IDE used, every submitted project must
 still be compilable with cmake and make.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 
